@@ -609,6 +609,26 @@ class Teams(FullTableStream):
     children= ["team_members"]
     pk_child_fields = ['slug']
 
+class CommitStats(IncrementalStream):
+    '''
+    https://docs.github.com/en/rest/commits/commits#get-a-commit
+    '''
+    tap_stream_id = "commit_stats"
+    replication_method = "INCREMENTAL"
+    replication_keys = "updated_at"
+    key_properties = ["sha"]
+    use_repository = True
+    use_organization = True
+    path = "commits/{}"
+    parent = 'commits'
+    id_keys = ["sha"]
+
+    def add_fields_at_1st_level(self, record, parent_record = None):
+        """
+        Add fields in the record explicitly at the 1st level of JSON.
+        """
+        record['updated_at'] = parent_record['commit']['committer']['date']
+
 class Commits(IncrementalStream):
     '''
     https://docs.github.com/en/rest/commits/commits#list-commits-on-a-repository
@@ -619,6 +639,8 @@ class Commits(IncrementalStream):
     key_properties = ["sha"]
     path = "commits"
     filter_param = True
+    children= ["commit_stats"]
+    pk_child_fields = ['sha']
 
     def add_fields_at_1st_level(self, record, parent_record = None):
         """
@@ -752,6 +774,7 @@ STREAMS = {
     "issue_events": IssueEvents,
     "events": Events,
     "commit_comments": CommitComments,
+    "commit_stats": CommitStats,
     "issue_milestones": IssueMilestones,
     "projects": Projects,
     "project_columns": ProjectColumns,
