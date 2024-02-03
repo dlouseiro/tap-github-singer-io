@@ -89,6 +89,12 @@ class TestGithubBase(unittest.TestCase):
                 self.BOOKMARK: {"updated_at"},
                 self.OBEYS_START_DATE: True
             },
+            "commit_stats": {
+                self.PRIMARY_KEYS: {"sha"},
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.BOOKMARK: {"updated_at"},
+                self.OBEYS_START_DATE: True
+            },
             "commits": {
                 self.PRIMARY_KEYS: {"sha"},
                 self.REPLICATION_METHOD: self.INCREMENTAL,

@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 from tap_github.client import GithubClient
-from tap_github.streams import Commits, Events, Projects, PullRequests, StarGazers, Teams
+from tap_github.streams import CommitComments, Events, Projects, PullRequests, StarGazers, Teams
 
 class MockResponse():
     """Mock response object class."""
@@ -159,16 +159,16 @@ class TestIncrementalStream(unittest.TestCase):
     def test_without_child_stream(self, mock_get_child_records, mock_authed_get_all_pages, mock_verify_access, mock_get_schema):
         """Verify that get_child_records() is not called for streams which do not have child streams"""
         test_client = GithubClient(self.config)
-        test_stream = Commits()
+        test_stream = CommitComments()
         mock_get_schema.return_value = self.catalog
-        mock_authed_get_all_pages.return_value = [MockResponse([{"commit": {"committer": {"date": "2022-07-05T09:42:14.000000Z"}}}, {"commit": {"committer": {"date": "2022-07-06T09:42:14.000000Z"}}}]),
-                                            MockResponse([{"commit": {"committer": {"date": "2022-07-07T09:42:14.000000Z"}}}, {"commit": {"committer": {"date": "2022-07-08T09:42:14.000000Z"}}}])]
-        test_stream.sync_endpoint(test_client, {}, self.catalog, "tap-github", "", ["commits"], ["commits"])
+        mock_authed_get_all_pages.return_value = [MockResponse([{"id": 1, "updated_at": "2011-04-14T16:00:49Z"}, {"id": 2, "updated_at": "2011-04-14T16:00:49Z"}]),
+                                            MockResponse([{"id": 3, "updated_at": "2011-04-14T16:00:49Z"}, {"id": 4, "updated_at": "2011-04-14T16:00:49Z"}])]
+        test_stream.sync_endpoint(test_client, {}, self.catalog, "tap-github", "", ["commit_comments"], ["commit_comments"])
 
         # Verify that the authed_get_all_pages() is called with the expected url
-        mock_authed_get_all_pages.assert_called_with(mock.ANY, "https://api.github.com/repos/tap-github/commits?since=", mock.ANY, stream='commits')
+        mock_authed_get_all_pages.assert_called_with(mock.ANY, "https://api.github.com/repos/tap-github/comments", mock.ANY, stream='commit_comments')
         
-        # Verify that the get_child_records() is not called as Commits does not contain any child stream.
+        # Verify that the get_child_records() is not called as CommitComments does not contain any child stream.
         self.assertFalse(mock_get_child_records.called)
 
     @mock.patch("tap_github.streams.Stream.get_child_records")
